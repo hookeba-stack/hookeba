@@ -1,0 +1,8 @@
+# Temporary files
+~$*
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Sensitive credentials
+credentials.json

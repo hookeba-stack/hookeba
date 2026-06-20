@@ -1,0 +1,24 @@
+HƯỚNG DẪN CHẤM ĐIỂM KHÁCH HÀNG TIỀM NĂNG - NGÀNH BẤT ĐỘNG SẢN
+
+Mục tiêu: Đánh giá chất lượng khách hàng dựa trên nội dung mô tả nhu cầu để ưu tiên chăm sóc.
+
+1. TIÊU CHÍ CỘNG 50 ĐIỂM (KHÁCH HÀNG VIP/SIÊU TIỀM NĂNG)
+AI cần nhận diện các từ khóa và ngữ cảnh sau để cộng điểm:
+- Ngân sách lớn: Có đề cập đến số tiền cụ thể từ 20 tỷ trở lên hoặc các cụm từ "tài chính mạnh", "không thành vấn đề".
+- Loại hình cao cấp: Tìm kiếm "Biệt thự đơn lập", "Penthouse", "Shophouse mặt đường lớn", "Quỹ đất công nghiệp", "Sàn văn phòng diện tích lớn".
+- Vị trí đắc địa: Yêu cầu các khu vực như "Quận 1", "Ven sông", "Vinhomes Ocean Park", "Phú Mỹ Hưng".
+- Đối tượng khách hàng: Đề cập là "Chủ doanh nghiệp", "Nhà đầu tư chuyên nghiệp", "Mua sỉ", "Mua số lượng lớn".
+- Tính cấp thiết & Minh bạch: Yêu cầu "Pháp lý chuẩn 100%", "Sổ hồng riêng", "Muốn gặp trực tiếp chủ đầu tư để đàm phán".
+
+2. TIÊU CHÍ TRỪ 50 ĐIỂM (KHÁCH HÀNG RÁC/KHÔNG TIỀM NĂNG)
+AI cần nhận diện các dấu hiệu sau để trừ điểm:
+- Yêu cầu phi thực tế: Tìm mua bất động sản với giá thấp vô lý so với thị trường (VD: Nhà Quận 1 giá 1-2 tỷ, nhà trung tâm có sân vườn hồ bơi giá vài trăm triệu).
+- Không có nhu cầu: "Nhầm số", "Không có nhu cầu", "Dữ liệu cũ", "Nhầm ngành".
+- Khách hàng không thiện chí: "Hỏi giá cho vui", "Chưa có ý định mua", "Thái độ không hợp tác".
+- Spam/Quảng cáo: Nội dung chứa các dịch vụ khác như "Bảo hiểm", "Vay vốn", "Mời chào dịch vụ".
+- Thông tin liên lạc lỗi: "Thuê bao", "Gọi nhiều lần không bắt máy", "Không phản hồi Zalo".
+
+3. CÁC TRƯỜNG HỢP KHÁC (GIỮ NGUYÊN ĐIỂM HOẶC CỘNG ÍT)
+- Khách hàng tìm mua chung cư, nhà phố tầm trung (3-10 tỷ).
+- Khách hàng cần vay ngân hàng, đang cân nhắc chính sách.
+- Khách hàng có nhu cầu thực nhưng cần tư vấn thêm về pháp lý hoặc vị trí.
