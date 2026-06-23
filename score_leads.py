@@ -149,7 +149,7 @@ def evaluate_lead(row: dict):
     """
     nhu_cau = row.get("nhu_cau_mo_ta", "") or ""
     if not nhu_cau.strip():
-        return BASE_SCORE, "Binh thuong", "Khong co mo ta nhu cau.", [], []
+        return BASE_SCORE, "Bình thường", "Không có mô tả nhu cầu.", [], []
 
     text_lower, text_no_acc = normalize_text(nhu_cau)
 
@@ -281,20 +281,20 @@ def evaluate_lead(row: dict):
 
     if final_score >= 100:
         category = "VIP"
-        reason = f"Cong 50 diem (VIP): {', '.join(vip_matched)}"
+        reason = f"Cộng 50 điểm (VIP): {', '.join(vip_matched)}"
         if junk_matched:
-            reason += f" | Dau hieu tieu cuc: {', '.join(junk_matched)}"
+            reason += f" | Dấu hiệu tiêu cực: {', '.join(junk_matched)}"
     elif final_score <= 0:
-        category = "Rac"
-        reason = f"Tru 50 diem (Rac): {', '.join(junk_matched)}"
+        category = "Rác"
+        reason = f"Trừ 50 điểm (Rác): {', '.join(junk_matched)}"
         if vip_matched:
-            reason += f" | Co tu khoa VIP: {', '.join(vip_matched)}"
+            reason += f" | Có từ khóa VIP: {', '.join(vip_matched)}"
     else:
-        category = "Binh thuong"
+        category = "Bình thường"
         if vip_matched and junk_matched:
-            reason = f"Giu nguyen 50 diem (Binh thuong): Giao thoa VIP + Rac"
+            reason = f"Giữ nguyên 50 điểm (Bình thường): Giao thoa VIP + Rác"
         else:
-            reason = "Giu nguyen 50 diem (Binh thuong): Khach hang tam trung."
+            reason = "Giữ nguyên 50 điểm (Bình thường): Khách hàng tầm trung."
 
     return final_score, category, reason, vip_matched, junk_matched
 
@@ -380,25 +380,25 @@ def create_excel_report(scored_leads: list, integrity_log: list, output_path) ->
     # ---- Sheet 1: Summary Dashboard ----------------------------------------
     ws1 = wb.create_sheet("Summary_Dashboard")
 
-    ws1["A1"] = "BAO CAO PHAN TICH CHAT LUONG KHACH HANG TIEM NANG"
+    ws1["A1"] = "BÁO CÁO PHÂN TÍCH CHẤT LƯỢNG KHÁCH HÀNG TIỀM NĂNG"
     ws1["A1"].font = Font(name=FONT, size=16, bold=True, color="1F4E79")
-    ws1["A2"] = f"He thong cham diem tu dong | Thoi gian xuat: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}"
+    ws1["A2"] = f"Hệ thống chấm điểm tự động | Thời gian xuất: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}"
     ws1["A2"].font = Font(name=FONT, size=10, italic=True, color="595959")
     ws1.row_dimensions[1].height = 26
     ws1.row_dimensions[2].height = 18
 
     total   = len(scored_leads)
     n_vip   = sum(1 for r in scored_leads if r["__score"][1] == "VIP")
-    n_norm  = sum(1 for r in scored_leads if r["__score"][1] == "Binh thuong")
-    n_junk  = sum(1 for r in scored_leads if r["__score"][1] == "Rac")
+    n_norm  = sum(1 for r in scored_leads if r["__score"][1] == "Bình thường")
+    n_junk  = sum(1 for r in scored_leads if r["__score"][1] == "Rác")
     avg_sc  = round(sum(r["__score"][0] for r in scored_leads) / total, 1) if total else 0
 
     kpi_data = [
-        ("B", "TONG SO KHACH",    total,  "#,##0"),
-        ("C", "KHACH VIP",        n_vip,  "#,##0"),
-        ("D", "BINH THUONG",      n_norm, "#,##0"),
-        ("E", "KHACH RAC",        n_junk, "#,##0"),
-        ("F", "DIEM TRUNG BINH",  avg_sc, "0.0"),
+        ("B", "TỔNG SỐ KHÁCH",    total,  "#,##0"),
+        ("C", "KHÁCH VIP",        n_vip,  "#,##0"),
+        ("D", "BÌNH THƯỜNG",      n_norm, "#,##0"),
+        ("E", "KHÁCH RÁC",        n_junk, "#,##0"),
+        ("F", "ĐIỂM TRUNG BÌNH",  avg_sc, "0.0"),
     ]
     for col, lbl, val, fmt in kpi_data:
         lc = ws1[f"{col}4"]
@@ -419,12 +419,12 @@ def create_excel_report(scored_leads: list, integrity_log: list, output_path) ->
     ws1.row_dimensions[4].height = 18
     ws1.row_dimensions[5].height = 34
 
-    ws1["B7"] = "BANG PHAN PHOI CO CAU KHACH HANG"
+    ws1["B7"] = "BẢNG PHÂN PHỐI CƠ CẤU KHÁCH HÀNG"
     ws1["B7"].font = Font(name=FONT, size=12, bold=True, color="1F4E79")
     ws1.merge_cells("B7:C7")
     ws1.row_dimensions[7].height = 22
 
-    for col_lbl, heading in [("B", "Nhom Khach Hang"), ("C", "So Luong")]:
+    for col_lbl, heading in [("B", "Nhóm Khách Hàng"), ("C", "Số Lượng")]:
         c = ws1[f"{col_lbl}8"]
         c.value = heading
         c.font  = Font(name=FONT, size=10, bold=True, color="FFFFFF")
@@ -432,7 +432,7 @@ def create_excel_report(scored_leads: list, integrity_log: list, output_path) ->
         c.alignment = Alignment(horizontal="center" if col_lbl == "C" else "left", vertical="center")
     ws1.row_dimensions[8].height = 22
 
-    for row_i, (cat, val) in enumerate([("VIP (100 diem)", n_vip), ("Binh thuong (50 diem)", n_norm), ("Rac (0 diem)", n_junk)], 9):
+    for row_i, (cat, val) in enumerate([("VIP (100 điểm)", n_vip), ("Bình thường (50 điểm)", n_norm), ("Rác (0 điểm)", n_junk)], 9):
         b = ws1[f"B{row_i}"]
         c = ws1[f"C{row_i}"]
         b.value = cat;   b.font = Font(name=FONT, size=10); b.border = b_cell
@@ -443,7 +443,7 @@ def create_excel_report(scored_leads: list, integrity_log: list, output_path) ->
             b.fill = fill_zebra; c.fill = fill_zebra
 
     tot_row = 12
-    for col_letter, val in [("B", "Tong cong"), ("C", "=SUM(C9:C11)")]:
+    for col_letter, val in [("B", "Tổng cộng"), ("C", "=SUM(C9:C11)")]:
         cell = ws1[f"{col_letter}{tot_row}"]
         cell.value  = val
         cell.font   = Font(name=FONT, size=10, bold=True)
@@ -462,7 +462,7 @@ def create_excel_report(scored_leads: list, integrity_log: list, output_path) ->
         data   = Reference(ws1, min_col=3, min_row=8, max_row=11)
         pie.add_data(data, titles_from_data=True)
         pie.set_categories(labels)
-        pie.title  = "Co Cau Khach Hang Tiem Nang"
+        pie.title  = "Cơ Cấu Khách Hàng Tiềm Năng"
         pie.width  = 16
         pie.height = 10
         ws1.add_chart(pie, "B14")
@@ -471,9 +471,9 @@ def create_excel_report(scored_leads: list, integrity_log: list, output_path) ->
 
     # ---- Sheet 2: Lead_Scores_Details --------------------------------------
     ws2 = wb.create_sheet("Lead_Scores_Details")
-    headers2 = ["Ma Lead", "Ten Khach Hang", "So Dien Thoai", "Mo Ta Nhu Cau",
-                "Diem Co Ban", "Diem Cong (VIP)", "Diem Tru (Rac)", "Diem Cuoi",
-                "Phan Loai", "Giai Trinh Ly Do"]
+    headers2 = ["Mã Lead", "Tên Khách Hàng", "Số Điện Thoại", "Mô Tả Nhu Cầu",
+                "Điểm Cơ Bản", "Điểm Cộng (VIP)", "Điểm Trừ (Rác)", "Điểm Cuối",
+                "Phân Loại", "Giải Trình Lý Do"]
 
     for ci, h in enumerate(headers2, 1):
         cell = ws2.cell(row=1, column=ci, value=h)
@@ -487,7 +487,7 @@ def create_excel_report(scored_leads: list, integrity_log: list, output_path) ->
         score, cat, reason, vip_m, junk_m = lead["__score"]
 
         ws2.cell(ri, 1, lead.get("id", f"L{ri-1}")).alignment = Alignment(horizontal="center")
-        ws2.cell(ri, 2, lead.get("ten_khach", "An danh"))
+        ws2.cell(ri, 2, lead.get("ten_khach", "Ẩn danh"))
         ws2.cell(ri, 3, lead.get("sdt", "N/A")).alignment = Alignment(horizontal="center")
         ws2.cell(ri, 4, lead.get("nhu_cau_mo_ta", "")).alignment = Alignment(wrap_text=True)
         ws2.cell(ri, 5, BASE_SCORE).number_format = "#,##0"
@@ -503,7 +503,7 @@ def create_excel_report(scored_leads: list, integrity_log: list, output_path) ->
         cc.alignment = Alignment(horizontal="center")
         if cat == "VIP":
             cc.fill = fill_vip;  cc.font = Font(name=FONT, size=10, bold=True, color="375623")
-        elif cat == "Rac":
+        elif cat == "Rác":
             cc.fill = fill_junk; cc.font = Font(name=FONT, size=10, bold=True, color="C65911")
         else:
             cc.fill = fill_norm; cc.font = Font(name=FONT, size=10, bold=True, color="1F4E79")
@@ -527,8 +527,8 @@ def create_excel_report(scored_leads: list, integrity_log: list, output_path) ->
 
     # ---- Sheet 3: Data_Integrity_Log ---------------------------------------
     ws3 = wb.create_sheet("Data_Integrity_Log")
-    headers3 = ["Dong Sheet", "Ma ID", "Ten Khach Hang", "So Dien Thoai",
-                "Truong Bi Loi", "Chi Tiet Loi", "Huong Xu Ly"]
+    headers3 = ["Dòng Sheet", "Mã ID", "Tên Khách Hàng", "Số Điện Thoại",
+                "Trường Bị Lỗi", "Chi Tiết Lỗi", "Hướng Xử Lý"]
 
     for ci, h in enumerate(headers3, 1):
         cell = ws3.cell(row=1, column=ci, value=h)
@@ -562,7 +562,7 @@ def create_excel_report(scored_leads: list, integrity_log: list, output_path) ->
             ws3.row_dimensions[ri].height = 24
     else:
         ws3.merge_cells("A2:G2")
-        ok = ws3.cell(2, 1, "Tuyet voi! Khong phat hien loi chat luong du lieu nao.")
+        ok = ws3.cell(2, 1, "Tuyệt vời! Không phát hiện lỗi chất lượng dữ liệu nào.")
         ok.font = Font(name=FONT, size=11, bold=True, color="375623")
         ok.fill = fill_vip
         ok.alignment = Alignment(horizontal="center", vertical="center")

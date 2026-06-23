@@ -28,7 +28,7 @@ except ImportError as exc:
 # Page config
 # ---------------------------------------------------------------------------
 st.set_page_config(
-    page_title="AI Lead Scoring Center",
+    page_title="Trung tâm Chấm điểm Lead AI",
     page_icon="🎯",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -103,8 +103,8 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
 # ---------------------------------------------------------------------------
 st.markdown("""
 <div class="banner">
-    <h1>🎯 AI LEAD SCORING CENTER</h1>
-    <p>He thong cham diem khach hang tiem nang bat dong san • Ket hop AI + Kiem duyet thu cong</p>
+    <h1>🎯 TRUNG TÂM CHẤM ĐIỂM LEAD AI</h1>
+    <p>Hệ thống chấm điểm khách hàng tiềm năng bất động sản • Kết hợp AI + Kiểm duyệt thủ công</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -113,8 +113,8 @@ st.markdown("""
 # ---------------------------------------------------------------------------
 CATEGORY_MAP = {
     "VIP":          "VIP",
-    "Binh thuong":  "Binh thuong",
-    "Rac":          "Rac",
+    "Bình thường":  "Bình thường",
+    "Rác":          "Rác",
 }
 
 def sync_changes(df: pd.DataFrame) -> pd.DataFrame:
@@ -126,19 +126,19 @@ def sync_changes(df: pd.DataFrame) -> pd.DataFrame:
         if h_cat != ai_cat:
             if h_cat == "VIP":
                 df.at[idx, "final_score"] = 100
-            elif h_cat == "Rac":
+            elif h_cat == "Rác":
                 df.at[idx, "final_score"] = 0
             else:
                 df.at[idx, "final_score"] = 50
-            note_str = f" | Ghi chu: {notes}" if notes else ""
+            note_str = f" | Ghi chú: {notes}" if notes else ""
             df.at[idx, "reasoning"] = (
-                f"[Thu cong] Chuyen thanh {h_cat}{note_str} "
+                f"[Thủ công] Chuyển thành {h_cat}{note_str} "
                 f"(AI: {ai_cat})"
             )
         elif notes:
             df.at[idx, "final_score"] = row["ai_score"]
             df.at[idx, "reasoning"] = (
-                f"[Thu cong] Giu nguyen {h_cat} | Ghi chu: {notes}"
+                f"[Thủ công] Giữ nguyên {h_cat} | Ghi chú: {notes}"
             )
         else:
             df.at[idx, "final_score"] = row["ai_score"]
@@ -170,30 +170,30 @@ def build_leads_for_export(df: pd.DataFrame) -> list:
 # Sidebar
 # ---------------------------------------------------------------------------
 with st.sidebar:
-    st.header("⚙️ Cau Hinh")
+    st.header("⚙️ Cấu Hình")
 
     default_url = (
         "https://docs.google.com/spreadsheets/d/"
         "1EaHaNMNmqz2Yy-3DpaNktbi4Ii0vRvaz4lwjpL71zYg/edit?usp=sharing"
     )
-    url_input = st.text_input("🔗 Link Google Sheet / File:", value=default_url)
-    output_name = st.text_input("📄 Ten file xuat:", value="Lead_Scoring_Report_Final.xlsx")
+    url_input = st.text_input("🔗 Đường dẫn Google Sheet / File:", value=default_url)
+    output_name = st.text_input("📄 Tên file xuất:", value="Lead_Scoring_Report_Final.xlsx")
 
     st.divider()
-    run_btn = st.button("⚡ Tai Du Lieu & Quet AI", use_container_width=True, type="primary")
+    run_btn = st.button("⚡ Tải Dữ Liệu & Quét AI", use_container_width=True, type="primary")
 
     st.divider()
-    st.caption("Phien ban 2.0 | AI Lead Scoring")
+    st.caption("Phiên bản 2.0 | AI Lead Scoring")
 
 # ---------------------------------------------------------------------------
 # Main logic: Load & Score
 # ---------------------------------------------------------------------------
 if run_btn:
-    with st.spinner("Dang tai du lieu va phan tich..."):
+    with st.spinner("Đang tải dữ liệu và phân tích bằng AI..."):
         try:
             raw_rows = score_leads.load_data(url_input)
         except Exception as exc:
-            st.error(f"Loi tai du lieu: {exc}")
+            st.error(f"Lỗi tải dữ liệu: {exc}")
             st.stop()
 
         data_list    = []
@@ -207,7 +207,7 @@ if run_btn:
             nhu_cau = str(row.get("nhu_cau_mo_ta") or "").strip()
 
             row["id"]          = lead_id
-            row["ten_khach"]   = ten or "An danh"
+            row["ten_khach"]   = ten or "Ẩn danh"
             row["sdt"]         = sdt or "N/A"
             row["nhu_cau_mo_ta"] = nhu_cau
 
@@ -215,23 +215,23 @@ if run_btn:
             if not ten:
                 integrity_log.append({"row_num": idx, "id": lead_id, "ten_khach": "N/A",
                     "sdt": sdt, "field": "ten_khach",
-                    "error_msg": "Thieu ten khach hang", "action": "Gan mac dinh 'An danh'"})
+                    "error_msg": "Thiếu tên khách hàng", "action": "Gán mặc định 'Ẩn danh'"})
             if not sdt:
                 integrity_log.append({"row_num": idx, "id": lead_id, "ten_khach": row["ten_khach"],
-                    "sdt": "Trong", "field": "sdt",
-                    "error_msg": "Thieu so dien thoai", "action": "Gan mac dinh 'N/A'"})
+                    "sdt": "Trống", "field": "sdt",
+                    "error_msg": "Thiếu số điện thoại", "action": "Gán mặc định 'N/A'"})
             elif sdt in seen_phones:
                 integrity_log.append({"row_num": idx, "id": lead_id, "ten_khach": row["ten_khach"],
                     "sdt": sdt, "field": "sdt",
-                    "error_msg": f"SDT trung lap voi dong {seen_phones[sdt]}",
-                    "action": "Giu lai va cham diem doc lap"})
+                    "error_msg": f"SĐT trùng lặp với dòng {seen_phones[sdt]}",
+                    "action": "Giữ lại và chấm điểm độc lập"})
             else:
                 seen_phones[sdt] = idx
 
             if not nhu_cau:
                 integrity_log.append({"row_num": idx, "id": lead_id, "ten_khach": row["ten_khach"],
                     "sdt": row["sdt"], "field": "nhu_cau_mo_ta",
-                    "error_msg": "Thieu mo ta nhu cau", "action": "Khong cham duoc diem, giu 50"})
+                    "error_msg": "Thiếu mô tả nhu cầu", "action": "Không chấm được điểm, giữ nguyên 50"})
 
             ai_score, ai_cat, ai_reason, vip_m, junk_m = score_leads.evaluate_lead(row)
 
@@ -254,7 +254,7 @@ if run_btn:
         st.session_state.df            = pd.DataFrame(data_list)
         st.session_state.integrity_log = integrity_log
         st.session_state.source_url    = url_input
-        st.toast(f"Da tai {len(data_list)} ban ghi va cham diem thanh cong!", icon="✅")
+        st.toast(f"Đã tải và phân tích thành công {len(data_list)} khách hàng tiềm năng!", icon="✅")
 
 # ---------------------------------------------------------------------------
 # Display section (when data loaded)
@@ -265,8 +265,8 @@ if "df" in st.session_state:
 
     total    = len(df)
     n_vip    = (df["human_category"] == "VIP").sum()
-    n_norm   = (df["human_category"] == "Binh thuong").sum()
-    n_junk   = (df["human_category"] == "Rac").sum()
+    n_norm   = (df["human_category"] == "Bình thường").sum()
+    n_junk   = (df["human_category"] == "Rác").sum()
     avg_sc   = df["final_score"].mean()
 
     # KPI cards
@@ -275,27 +275,27 @@ if "df" in st.session_state:
         <div class="kpi-card total">
             <div class="kpi-icon">👥</div>
             <div class="kpi-val">{total}</div>
-            <div class="kpi-lbl">Tong So Khach</div>
+            <div class="kpi-lbl">Tổng Số Khách</div>
         </div>
         <div class="kpi-card vip">
             <div class="kpi-icon">⭐</div>
             <div class="kpi-val" style="color:#16A34A">{n_vip}</div>
-            <div class="kpi-lbl">Khach VIP</div>
+            <div class="kpi-lbl">Khách VIP</div>
         </div>
         <div class="kpi-card norm">
             <div class="kpi-icon">👤</div>
             <div class="kpi-val" style="color:#2563EB">{n_norm}</div>
-            <div class="kpi-lbl">Binh Thuong</div>
+            <div class="kpi-lbl">Bình Thường</div>
         </div>
         <div class="kpi-card junk">
             <div class="kpi-icon">🗑️</div>
             <div class="kpi-val" style="color:#DC2626">{n_junk}</div>
-            <div class="kpi-lbl">Khach Rac</div>
+            <div class="kpi-lbl">Khách Rác</div>
         </div>
         <div class="kpi-card avg">
             <div class="kpi-icon">📊</div>
             <div class="kpi-val" style="color:#D97706">{avg_sc:.1f}</div>
-            <div class="kpi-lbl">Diem TB</div>
+            <div class="kpi-lbl">Điểm TB</div>
         </div>
     </div>
     """
@@ -304,28 +304,28 @@ if "df" in st.session_state:
     st.divider()
 
     # Review table
-    st.subheader("📝 Bang Kiem Duyet Khach Hang")
+    st.subheader("📝 Bảng Kiểm Duyệt Khách Hàng")
     st.info(
-        "Click doi vao cot **Phan Loai Kiem Duyet** de thay doi phan loai. "
-        "Dien **Ghi Chu** de ghi nhan ly do kiem duyet thu cong."
+        "💡 Click đúp vào ô ở cột **Phân Loại KD** để thay đổi phân loại của khách hàng. "
+        "Điền thông tin vào cột **Ghi Chú** để ghi nhận lý do kiểm duyệt thủ công."
     )
 
     col_cfg = {
-        "id":             st.column_config.TextColumn("Ma Lead",       width="small",  disabled=True),
-        "ten_khach":      st.column_config.TextColumn("Ten Khach Hang", width="medium", disabled=True),
-        "sdt":            st.column_config.TextColumn("So DT",          width="small",  disabled=True),
-        "nhu_cau_mo_ta":  st.column_config.TextColumn("Mo Ta Nhu Cau",  width="large",  disabled=True),
-        "ai_score":       st.column_config.NumberColumn("Diem AI",      width="small",  format="%d", disabled=True),
-        "ai_category":    st.column_config.TextColumn("Phan Loai AI",   width="small",  disabled=True),
-        "final_score":    st.column_config.NumberColumn("Diem Cuoi",    width="small",  format="%d", disabled=True),
+        "id":             st.column_config.TextColumn("Mã Lead",       width="small",  disabled=True),
+        "ten_khach":      st.column_config.TextColumn("Tên Khách Hàng", width="medium", disabled=True),
+        "sdt":            st.column_config.TextColumn("Số ĐT",          width="small",  disabled=True),
+        "nhu_cau_mo_ta":  st.column_config.TextColumn("Mô Tả Nhu Cầu",  width="large",  disabled=True),
+        "ai_score":       st.column_config.NumberColumn("Điểm AI",      width="small",  format="%d", disabled=True),
+        "ai_category":    st.column_config.TextColumn("Phân Loại AI",   width="small",  disabled=True),
+        "final_score":    st.column_config.NumberColumn("Điểm Cuối",    width="small",  format="%d", disabled=True),
         "human_category": st.column_config.SelectboxColumn(
-            "Phan Loai KD",
-            options=["VIP", "Binh thuong", "Rac"],
+            "Phân Loại KD",
+            options=["VIP", "Bình thường", "Rác"],
             width="medium",
             required=True,
         ),
-        "review_notes":   st.column_config.TextColumn("Ghi Chu",       width="medium"),
-        "reasoning":      st.column_config.TextColumn("Giai Trinh",     width="large",  disabled=True),
+        "review_notes":   st.column_config.TextColumn("Ghi Chú",       width="medium"),
+        "reasoning":      st.column_config.TextColumn("Giải Trình",     width="large",  disabled=True),
     }
 
     display_df = df.drop(columns=["ai_reasoning", "__vip_m", "__junk_m"], errors="ignore")
@@ -349,65 +349,65 @@ if "df" in st.session_state:
     st.divider()
 
     # Export options
-    st.subheader("💾 Xuat Ket Qua")
+    st.subheader("💾 Xuất Kết Quả")
     exp_col1, exp_col2, exp_col3 = st.columns(3)
 
     with exp_col1:
-        st.write("**📊 Tai Bao Cao Excel**")
+        st.write("**📊 Tải Báo Cáo Excel**")
         buf = io.BytesIO()
         try:
             leads_export = build_leads_for_export(df)
             score_leads.create_excel_report(leads_export, log, buf)
             buf.seek(0)
             st.download_button(
-                label="📥 Tai Xuong Excel",
+                label="📥 Tải Xuống Excel",
                 data=buf,
                 file_name=output_name,
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 use_container_width=True,
             )
         except Exception as exc:
-            st.error(f"Loi tao Excel: {exc}")
+            st.error(f"Lỗi tạo Excel: {exc}")
 
     with exp_col2:
-        st.write("**📂 Luu File Cuc Bo**")
+        st.write("**📂 Lưu File Cục Bộ**")
         save_path = PROJECT_ROOT / output_name
-        if st.button("💾 Luu Vao Thu Muc Du An", use_container_width=True):
+        if st.button("💾 Lưu Vào Thư Mục Dự Án", use_container_width=True):
             try:
                 leads_export = build_leads_for_export(df)
                 score_leads.create_excel_report(leads_export, log, save_path)
-                st.success(f"Da luu: {save_path}")
+                st.success(f"Đã lưu: {save_path}")
             except Exception as exc:
-                st.error(f"Loi: {exc}")
+                st.error(f"Lỗi: {exc}")
 
     with exp_col3:
-        st.write("**🔄 Ghi Nguoc Google Sheet**")
-        if st.button("📝 Cap Nhat Google Sheet", use_container_width=True):
+        st.write("**🔄 Ghi Ngược Google Sheet**")
+        if st.button("📝 Cập Nhật Google Sheet", use_container_width=True):
             src = st.session_state.get("source_url", "")
             if src.startswith("http"):
-                with st.spinner("Dang cap nhat..."):
+                with st.spinner("Đang cập nhật..."):
                     try:
                         leads_export = build_leads_for_export(df)
                         score_leads.write_scores_to_gspread(leads_export, src)
-                        st.success("Cap nhat Google Sheet thanh cong!")
+                        st.success("Cập nhật Google Sheet thành công!")
                     except Exception as exc:
-                        st.error(f"That bai: {exc}")
+                        st.error(f"Thất bại: {exc}")
             else:
-                st.warning("Nguon du lieu khong phai Google Sheet.")
+                st.warning("Nguồn dữ liệu không phải Google Sheet.")
 
     # Integrity log
     if log:
         st.divider()
-        with st.expander(f"⚠️ Nhat Ky Canh Bao Du Lieu ({len(log)} loi)"):
+        with st.expander(f"⚠️ Nhật Ký Cảnh Báo Dữ Liệu ({len(log)} cảnh báo)"):
             st.dataframe(
                 pd.DataFrame(log).rename(columns={
-                    "row_num":   "Dong",
-                    "id":        "Ma Lead",
-                    "ten_khach": "Ten Khach",
-                    "sdt":       "So DT",
-                    "field":     "Truong Loi",
-                    "error_msg": "Mo Ta Loi",
-                    "action":    "Xu Ly",
+                    "row_num":   "Dòng",
+                    "id":        "Mã Lead",
+                    "ten_khach": "Tên Khách",
+                    "sdt":       "Số ĐT",
+                    "field":     "Trường Lỗi",
+                    "error_msg": "Mô Tả Lỗi",
+                    "action":    "Xử Lý",
                 }),
                 use_container_width=True,
                 hide_index=True,
@@ -415,6 +415,6 @@ if "df" in st.session_state:
 
 else:
     st.info(
-        "👉 Nhap link Google Sheet vao Sidebar (hoac giu mac dinh) "
-        "va nhan **Tai Du Lieu & Quet AI** de bat dau."
+        "👉 Nhập link Google Sheet vào Sidebar (hoặc giữ mặc định) "
+        "và nhấn **Tải Dữ Liệu & Quét AI** để bắt đầu."
     )
