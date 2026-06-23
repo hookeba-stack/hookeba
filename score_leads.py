@@ -326,6 +326,11 @@ def get_gspread_client():
             if key_data.get("type") == "service_account":
                 creds = service_account.Credentials.from_service_account_info(key_data, scopes=SCOPES)
                 return gspread.authorize(creds)
+            elif "refresh_token" in key_data:
+                creds = Credentials.from_authorized_user_info(key_data, scopes=SCOPES)
+                if not creds.valid and creds.expired and creds.refresh_token:
+                    creds.refresh(GRequest())
+                return gspread.authorize(creds)
     except Exception:
         pass
 
