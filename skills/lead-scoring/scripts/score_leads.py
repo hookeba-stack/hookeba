@@ -320,17 +320,23 @@ def get_gspread_client():
     # 0. Thử Streamlit Secrets (dành cho Streamlit Cloud)
     try:
         import streamlit as st
+        # A. Thử Service Account
         if "gcp_service_account" in st.secrets:
             # st.secrets trả về AttrDict, cần ép kiểu về dict tiêu chuẩn
             key_data = dict(st.secrets["gcp_service_account"])
             if key_data.get("type") == "service_account":
                 creds = service_account.Credentials.from_service_account_info(key_data, scopes=SCOPES)
                 return gspread.authorize(creds)
-            elif "refresh_token" in key_data:
-                creds = Credentials.from_authorized_user_info(key_data, scopes=SCOPES)
-                if not creds.valid and creds.expired and creds.refresh_token:
+        # B. Thử OAuth Token cá nhân
+        if "gcp_oauth_token" in st.secrets:
+            token_data = dict(st.secrets["gcp_oauth_token"])
+            creds = Credentials.from_authorized_user_info(token_data, scopes=SCOPES)
+            if not creds.valid:
+                if creds.expired and creds.refresh_token:
                     creds.refresh(GRequest())
-                return gspread.authorize(creds)
+                    # Vì st.secrets là read-only, chúng ta không thể lưu đè lại vào st.secrets.
+                    # Tuy nhiên creds đã refresh trong bộ nhớ sẽ dùng được cho phiên này.
+            return gspread.authorize(creds)
     except Exception:
         pass
 
