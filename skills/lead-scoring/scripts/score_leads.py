@@ -330,18 +330,19 @@ def get_gspread_client():
             except Exception:
                 pass
 
-    # 2. Thử OAuth token đã lưu từ setup_oauth.py
-    TOKEN_PATH = Path.home() / ".config" / "ai_audit" / "token.json"
-    if TOKEN_PATH.exists():
-        try:
-            creds = Credentials.from_authorized_user_file(str(TOKEN_PATH), SCOPES)
-            if creds.expired and creds.refresh_token:
-                creds.refresh(GRequest())
-                with open(TOKEN_PATH, "w") as f:
-                    f.write(creds.to_json())
-            return gspread.authorize(creds)
-        except Exception:
-            pass
+    # 2. Thử OAuth token đã lưu cục bộ (token.json) hoặc toàn cục (~/.config/ai_audit/token.json)
+    for token_file in ["token.json", str(Path.home() / ".config" / "ai_audit" / "token.json")]:
+        TOKEN_PATH = Path(token_file)
+        if TOKEN_PATH.exists():
+            try:
+                creds = Credentials.from_authorized_user_file(str(TOKEN_PATH), SCOPES)
+                if creds.expired and creds.refresh_token:
+                    creds.refresh(GRequest())
+                    with open(TOKEN_PATH, "w") as f:
+                        f.write(creds.to_json())
+                return gspread.authorize(creds)
+            except Exception as e:
+                raise RuntimeError(f"Đã tìm thấy file token tại {TOKEN_PATH} nhưng xảy ra lỗi khi xác thực: {e}")
 
     raise RuntimeError("Không tìm thấy thông tin xác thực Google (Service Account JSON hoặc OAuth token).")
 
