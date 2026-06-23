@@ -48,17 +48,22 @@ Xuất báo cáo kết quả ra tệp Excel định dạng sang trọng chứa:
 - `Lead_Scores_Details`: Chi tiết điểm số, phân loại (VIP, Bình thường, Rác) kèm lý do giải trình chi tiết cho từng trường hợp.
 - `Data_Integrity_Log`: Danh sách các bản ghi bị lỗi dữ liệu (như thiếu số điện thoại, thiếu mô tả nhu cầu) được tự động phát hiện và xử lý.
 
----
+## Hướng Dẫn Chạy Hệ Thống
 
-## Hướng Dẫn Chạy Script
-
-Chạy script chấm điểm bằng Python:
+### Cách 1: Chạy bằng giao diện Streamlit (Có kiểm duyệt thủ công - Khuyên dùng)
+Giao diện Web trực quan cho phép tải dữ liệu từ Google Sheet, kiểm duyệt phê duyệt thủ công kết quả phân loại của AI, đồng bộ điểm số và xuất báo cáo trực tiếp:
 ```bash
-python "C:\Users\HOME\.gemini\config\skills\lead-scoring\scripts\score_leads.py" ^
-  --url "https://docs.google.com/spreadsheets/d/1EaHaNMNmqz2Yy-3DpaNktbi4Ii0vRvaz4lwjpL71zYg/edit?usp=sharing" ^
-  --output "C:\Users\HOME\Documents\Thực hành bài 7\Lead_Scoring_Report.xlsx"
+streamlit run app_lead_scoring.py
 ```
 
-### Tham Số Đầu Vào:
+### Cách 2: Chạy script dòng lệnh (Tự động hoàn toàn)
+Chạy script chấm điểm bằng CLI:
+```bash
+python "C:\Users\HOME\.gemini\config\skills\lead-scoring\scripts\score_leads.py" \
+  --url "https://docs.google.com/spreadsheets/d/1EaHaNMNmqz2Yy-3DpaNktbi4Ii0vRvaz4lwjpL71zYg/edit?usp=sharing" \
+  --output "Lead_Scoring_Report.xlsx"
+```
+
+### Tham Số Đầu Vào CLI:
 - `--url`: Link Google Sheet hoặc đường dẫn tới file CSV/Excel nội bộ. (Bắt buộc)
 - `--output`: Đường dẫn lưu file Excel báo cáo đầu ra. (Mặc định: `Lead_Scoring_Report.xlsx` ở thư mục hiện tại)

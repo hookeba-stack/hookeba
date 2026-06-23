@@ -14,10 +14,14 @@ import re
 from datetime import datetime
 from pathlib import Path
 
-# Thêm thư mục scripts của skill vào sys.path để import
-SKILL_SCRIPTS_PATH = r"C:\Users\HOME\.gemini\config\skills\lead-scoring\scripts"
-if SKILL_SCRIPTS_PATH not in sys.path:
-    sys.path.append(SKILL_SCRIPTS_PATH)
+# Thêm thư mục scripts của skill vào sys.path để import (ưu tiên thư mục cục bộ trong dự án)
+PROJECT_ROOT = Path(__file__).parent.resolve()
+LOCAL_SKILL_PATH = PROJECT_ROOT / "skills" / "lead-scoring" / "scripts"
+if LOCAL_SKILL_PATH.exists():
+    sys.path.append(str(LOCAL_SKILL_PATH))
+else:
+    GLOBAL_SKILL_PATH = Path.home() / ".gemini" / "config" / "skills" / "lead-scoring" / "scripts"
+    sys.path.append(str(GLOBAL_SKILL_PATH))
 
 # Tự động cài đặt và import thư viện thiếu
 def install_and_import(package, import_name=None):
@@ -396,7 +400,7 @@ if "df" in st.session_state:
     # Tùy chọn B: Lưu file Excel cục bộ vào Workspace
     with action_cols[1]:
         st.write("📂 **Lưu báo cáo vào thư mục dự án cục bộ**")
-        workspace_save_path = Path(r"C:\Users\HOME\Documents\Thực hành bài 7") / output_filename
+        workspace_save_path = Path(__file__).parent.resolve() / output_filename
         if st.button("💾 Lưu File Cục Bộ Vào Workspace", use_container_width=True):
             try:
                 leads_for_excel = convert_df_to_leads(df)
