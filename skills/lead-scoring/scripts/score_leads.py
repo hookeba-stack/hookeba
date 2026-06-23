@@ -317,6 +317,18 @@ def get_gspread_client():
         "https://www.googleapis.com/auth/drive"
     ]
 
+    # 0. Thử Streamlit Secrets (dành cho Streamlit Cloud)
+    try:
+        import streamlit as st
+        if "gcp_service_account" in st.secrets:
+            # st.secrets trả về AttrDict, cần ép kiểu về dict tiêu chuẩn
+            key_data = dict(st.secrets["gcp_service_account"])
+            if key_data.get("type") == "service_account":
+                creds = service_account.Credentials.from_service_account_info(key_data, scopes=SCOPES)
+                return gspread.authorize(creds)
+    except Exception:
+        pass
+
     # 1. Thử Service Account từ file 'gg-cloud-key-json.json' hoặc 'service_account.json'
     # Tìm theo absolute path dựa vào vị trí của file script này (không phụ thuộc CWD)
     script_dir = Path(__file__).parent.resolve()
@@ -370,12 +382,13 @@ def get_gspread_client():
             ) from e
 
     # Tạo danh sách các đường dẫn đã tìm để hiển thị thông báo lỗi chi tiết
-    searched_paths = "\n".join([f"  • {str(p)}" for p in token_locations])
+    searched_paths = "\n".join([f"  • Cục bộ: {str(p)}" for p in token_locations])
     raise RuntimeError(
         "Không tìm thấy thông tin xác thực Google.\n"
-        "Vui lòng đặt một trong các tệp sau:\n"
-        "  • File key của Service Account đặt tại thư mục dự án: gg-cloud-key-json.json hoặc service_account.json\n"
-        f"  • File token OAuth cá nhân tại một trong các đường dẫn:\n{searched_paths}"
+        "Vui lòng cấu hình một trong các phương thức sau:\n"
+        "  • Streamlit Cloud: Thêm 'gcp_service_account' vào mục Secrets trên Streamlit Cloud.\n"
+        "  • Cục bộ: File key của Service Account đặt tại thư mục dự án: gg-cloud-key-json.json hoặc service_account.json\n"
+        f"  • Cục bộ: File token OAuth cá nhân tại một trong các đường dẫn:\n{searched_paths}"
     )
 
 
