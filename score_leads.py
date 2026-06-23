@@ -299,9 +299,64 @@ def evaluate_lead(row: dict):
     return final_score, category, reason, vip_matched, junk_matched
 
 
+def get_gspread_client():
+    """
+    Xác thực và trả về đối tượng gspread client.
+    Hỗ trợ:
+    1. Service Account JSON file (ưu tiên 'gg-cloud-key-json.json' tiếp theo là 'service_account.json')
+    2. OAuth token.json đã lưu tại ~/.config/ai_audit/token.json
+    """
+    import json
+    import gspread
+    from google.oauth2 import service_account
+    from google.oauth2.credentials import Credentials
+    from google.auth.transport.requests import Request as GRequest
+
+    SCOPES = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive"
+    ]
+
+    # 1. Thử Service Account từ file 'gg-cloud-key-json.json' hoặc 'service_account.json'
+    for key_file in ["gg-cloud-key-json.json", "service_account.json"]:
+        key_path = Path(key_file)
+        if key_path.exists():
+            try:
+                with open(key_path, encoding="utf-8") as f:
+                    key_data = json.load(f)
+                if key_data.get("type") == "service_account":
+                    creds = service_account.Credentials.from_service_account_info(key_data, scopes=SCOPES)
+                    return gspread.authorize(creds)
+            except Exception:
+                pass
+
+    # 2. Thử OAuth token đã lưu từ setup_oauth.py
+    TOKEN_PATH = Path.home() / ".config" / "ai_audit" / "token.json"
+    if TOKEN_PATH.exists():
+        try:
+            creds = Credentials.from_authorized_user_file(str(TOKEN_PATH), SCOPES)
+            if creds.expired and creds.refresh_token:
+                creds.refresh(GRequest())
+                with open(TOKEN_PATH, "w") as f:
+                    f.write(creds.to_json())
+            return gspread.authorize(creds)
+        except Exception:
+            pass
+
+    raise RuntimeError("Không tìm thấy thông tin xác thực Google (Service Account JSON hoặc OAuth token).")
+
+
 # ---------------------------------------------------------------------------
 # Data loading
 # ---------------------------------------------------------------------------
+def _get_worksheet_by_gid(sh, gid: str):
+    """Trả về worksheet khớp gid. Nếu không tìm thấy, trả về sheet đầu tiên."""
+    for ws in sh.worksheets():
+        if str(ws.id) == str(gid):
+            return ws
+    return sh.get_worksheet(0)
+
+
 def load_data(source: str) -> list:
     """
     Load data from Google Sheets URL or local CSV/Excel file.
@@ -309,13 +364,70 @@ def load_data(source: str) -> list:
     """
     if source.startswith("http://") or source.startswith("https://"):
         if "docs.google.com/spreadsheets" in source:
+            # Trích xuất gid (tab cụ thể) nếu có trong URL
+            gid_match = re.search(r"[#&?]gid=(\d+)", source)
+            gid = gid_match.group(1) if gid_match else None
+
+            # 1. Thử tải có xác thực qua gspread (hỗ trợ Sheet riêng tư được share)
+            auth_error = None
+            try:
+                gc = get_gspread_client()
+                # Nếu xác thực thành công, mọi lỗi từ đây là lỗi quyền truy cập thực sự
+                try:
+                    sh = gc.open_by_url(source)
+                    ws = _get_worksheet_by_gid(sh, gid) if gid else sh.get_worksheet(0)
+                    all_values = ws.get_all_values()
+                    if all_values:
+                        headers = all_values[0]
+                        rows = []
+                        for row in all_values[1:]:
+                            row_dict = {}
+                            for idx, h in enumerate(headers):
+                                if h:
+                                    row_dict[h] = row[idx] if idx < len(row) else ""
+                            rows.append(row_dict)
+                        return rows
+                except Exception as sheet_err:
+                    # Đã xác thực nhưng không mở được sheet → báo lỗi thay vì fallback ngầm
+                    raise RuntimeError(
+                        f"Đã xác thực Google thành công nhưng không thể mở Sheet.\n"
+                        f"→ Kiểm tra rằng Sheet đã được chia sẻ cho tài khoản đang dùng.\n"
+                        f"Chi tiết: {sheet_err}"
+                    )
+            except RuntimeError:
+                # Lỗi quyền/sheet → ném lên để Streamlit hiển thị
+                raise
+            except Exception as auth_err:
+                # Không có credentials → thử fallback CSV công khai
+                auth_error = auth_err
+
+            # 2. Fallback tải công khai qua requests export CSV
             match = re.search(r"/d/([a-zA-Z0-9-_]+)", source)
             if match:
                 sheet_id = match.group(1)
-                # Also check for gid (sheet tab)
-                gid_match = re.search(r"gid=(\d+)", source)
-                gid_str = f"&gid={gid_match.group(1)}" if gid_match else ""
-                source = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv{gid_str}"
+                gid_str = f"&gid={gid}" if gid else ""
+                csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv{gid_str}"
+            else:
+                csv_url = source
+
+            try:
+                resp = requests.get(csv_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=30)
+                resp.raise_for_status()
+                csv_data = resp.content.decode("utf-8-sig")
+                reader = csv.DictReader(io.StringIO(csv_data))
+                return list(reader)
+            except requests.HTTPError as csv_err:
+                if csv_err.response is not None and csv_err.response.status_code in (401, 403):
+                    raise RuntimeError(
+                        "Sheet này là riêng tư và không thể tải công khai.\n"
+                        "→ Hãy chia sẻ Sheet với tài khoản Google đã xác thực, "
+                        "hoặc đặt quyền 'Anyone with the link can view'."
+                    ) from csv_err
+                raise
+
+            resp = requests.get(csv_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=30)
+            resp.raise_for_status()
+            return []
 
         resp = requests.get(source, headers={"User-Agent": "Mozilla/5.0"}, timeout=30)
         resp.raise_for_status()
@@ -577,7 +689,7 @@ def create_excel_report(scored_leads: list, integrity_log: list, output_path) ->
 
 
 # ---------------------------------------------------------------------------
-# Optional: write scores back to Google Sheet (requires gspread + OAuth)
+# Optional: write scores back to Google Sheet (requires gspread + credentials)
 # ---------------------------------------------------------------------------
 def write_scores_to_gspread(scored_leads: list, source_url: str) -> None:
     try:
@@ -585,23 +697,7 @@ def write_scores_to_gspread(scored_leads: list, source_url: str) -> None:
     except ImportError:
         raise RuntimeError("gspread is not installed. Run: pip install gspread google-auth")
 
-    TOKEN_PATH = Path.home() / ".config" / "ai_audit" / "token.json"
-    if not TOKEN_PATH.exists():
-        raise FileNotFoundError(
-            "OAuth token not found at ~/.config/ai_audit/token.json. "
-            "Please run the OAuth setup script first."
-        )
-
-    from google.oauth2.credentials import Credentials
-    from google.auth.transport.requests import Request as GRequest
-    SCOPES = ["https://www.googleapis.com/auth/spreadsheets",
-              "https://www.googleapis.com/auth/drive"]
-
-    creds = Credentials.from_authorized_user_file(str(TOKEN_PATH), SCOPES)
-    if creds.expired and creds.refresh_token:
-        creds.refresh(GRequest())
-
-    gc = gspread.authorize(creds)
+    gc = get_gspread_client()
     sh = gc.open_by_url(source_url)
     ws = sh.get_worksheet(0)
     headers = ws.row_values(1)
