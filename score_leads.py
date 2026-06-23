@@ -334,9 +334,20 @@ def get_gspread_client():
                 except Exception:
                     pass
 
-    # 2. Thử OAuth token đã lưu từ setup_oauth.py
-    TOKEN_PATH = Path.home() / ".config" / "ai_audit" / "token.json"
-    if TOKEN_PATH.exists():
+    # 2. Thử OAuth token từ các vị trí khả dụng
+    token_locations = [
+        Path.home() / ".config" / "ai_audit" / "token.json",
+        Path("token.json"),
+        Path(__file__).parent.resolve() / "token.json"
+    ]
+    
+    TOKEN_PATH = None
+    for loc in token_locations:
+        if loc.exists():
+            TOKEN_PATH = loc
+            break
+
+    if TOKEN_PATH:
         try:
             creds = Credentials.from_authorized_user_file(str(TOKEN_PATH), SCOPES)
             if not creds.valid:
@@ -358,12 +369,15 @@ def get_gspread_client():
                 "Vui lòng xoá token.json và chạy lại xác thực OAuth."
             ) from e
 
+    # Tạo danh sách các đường dẫn đã tìm để hiển thị thông báo lỗi chi tiết
+    searched_paths = "\n".join([f"  • {str(p)}" for p in token_locations])
     raise RuntimeError(
         "Không tìm thấy thông tin xác thực Google.\n"
-        "Cần một trong hai:\n"
-        "  • File service_account.json (Service Account key)\n"
-        f"  • OAuth token tại {Path.home() / '.config' / 'ai_audit' / 'token.json'}"
+        "Vui lòng đặt một trong các tệp sau:\n"
+        "  • File key của Service Account đặt tại thư mục dự án: gg-cloud-key-json.json hoặc service_account.json\n"
+        f"  • File token OAuth cá nhân tại một trong các đường dẫn:\n{searched_paths}"
     )
+
 
 
 # ---------------------------------------------------------------------------
