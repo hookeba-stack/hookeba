@@ -218,29 +218,37 @@ if run_btn:
                 # Chuyển đổi DataFrame sang list of dicts
                 df = df.fillna("")
                 raw_rows = df.to_dict(orient="records")
-            except Exception as exc:
-                st.error("### ❌ Lỗi Tải Google Sheets Bảo Mật")
-                st.markdown(f"**Chi tiết lỗi:** `{exc}`")
-                st.info(
-                    "💡 **Lưu ý bảo mật:** Google Sheet này có thể là riêng tư. Để kết nối an toàn sử dụng `st-gsheets-connection`:\n\n"
-                    "1. Hãy đảm bảo bạn đã chia sẻ quyền xem Sheet cho Service Account email: \n"
-                    "   `thuc-hanh-bai-7@thuc-hanh-bai-7.iam.gserviceaccount.com`\n"
-                    "2. Tạo file `.streamlit/secrets.toml` trong thư mục gốc của dự án và điền thông tin Service Account key theo mẫu dưới đây:\n"
-                    "```toml\n"
-                    "[connections.gsheets]\n"
-                    f'spreadsheet = "{url_input}"\n\n'
-                    "[connections.gsheets.configuration]\n"
-                    'type = "service_account"\n'
-                    'project_id = "thuc-hanh-bai-7"\n'
-                    'private_key_id = "YOUR_PRIVATE_KEY_ID"\n'
-                    'private_key = "-----BEGIN PRIVATE KEY-----\\nYOUR_PRIVATE_KEY\\n-----END PRIVATE KEY-----\\n"\n'
-                    'client_email = "thuc-hanh-bai-7@thuc-hanh-bai-7.iam.gserviceaccount.com"\n'
-                    'client_id = "YOUR_CLIENT_ID"\n'
-                    "# ... (Điền đầy đủ các trường từ file JSON key của bạn)\n"
-                    "```\n"
-                    "Tham khảo file mẫu tại `.streamlit/secrets.toml.example` để biết thêm chi tiết."
-                )
-                st.stop()
+            except Exception as gsheets_exc:
+                # Phương án dự phòng: Sử dụng gspread + OAuth token từ score_leads
+                try:
+                    raw_rows = score_leads.load_data(url_input)
+                except Exception as fallback_exc:
+                    st.error("### ❌ Lỗi Tải Google Sheets Bảo Mật")
+                    st.markdown(f"**Lỗi kết nối chính (st-gsheets-connection):** `{gsheets_exc}`")
+                    st.markdown(f"**Lỗi kết nối dự phòng (gspread OAuth):** `{fallback_exc}`")
+                    st.info(
+                        "💡 **Lưu ý bảo mật:** Google Sheet này là riêng tư. Để kết nối an toàn, vui lòng đảm bảo một trong hai phương án sau:\n\n"
+                        "**Phương án 1: Sử dụng Service Account (Khuyên dùng cho Streamlit Cloud)**\n"
+                        "1. Chia sẻ quyền xem Sheet cho Service Account: `thuc-hanh-bai-7@thuc-hanh-bai-7.iam.gserviceaccount.com`\n"
+                        "2. Tạo file `.streamlit/secrets.toml` trong thư mục gốc của dự án và điền thông tin Service Account key theo mẫu dưới đây:\n"
+                        "```toml\n"
+                        "[connections.gsheets]\n"
+                        f'spreadsheet = "{url_input}"\n\n'
+                        "[connections.gsheets.configuration]\n"
+                        'type = "service_account"\n'
+                        'project_id = "thuc-hanh-bai-7"\n'
+                        'private_key_id = "YOUR_PRIVATE_KEY_ID"\n'
+                        'private_key = "-----BEGIN PRIVATE KEY-----\\nYOUR_PRIVATE_KEY\\n-----END PRIVATE KEY-----\\n"\n'
+                        'client_email = "thuc-hanh-bai-7@thuc-hanh-bai-7.iam.gserviceaccount.com"\n'
+                        'client_id = "YOUR_CLIENT_ID"\n'
+                        "# ... (Điền đầy đủ các trường từ file JSON key của bạn)\n"
+                        "```\n"
+                        "Tham khảo file mẫu tại `.streamlit/secrets.toml.example` để biết thêm chi tiết.\n\n"
+                        "**Phương án 2: Sử dụng Xác thực OAuth (Chạy cục bộ)**\n"
+                        "1. Đảm bảo file `gg-cloud-key-json.json` nằm ở thư mục dự án.\n"
+                        "2. Chạy xác thực để tạo token tại `~/.config/ai_audit/token.json`."
+                    )
+                    st.stop()
         else:
             try:
                 raw_rows = score_leads.load_data(url_input)
