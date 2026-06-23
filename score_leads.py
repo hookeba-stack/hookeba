@@ -318,33 +318,52 @@ def get_gspread_client():
     ]
 
     # 1. Thử Service Account từ file 'gg-cloud-key-json.json' hoặc 'service_account.json'
+    # Tìm theo absolute path dựa vào vị trí của file script này (không phụ thuộc CWD)
+    script_dir = Path(__file__).parent.resolve()
     for key_file in ["gg-cloud-key-json.json", "service_account.json"]:
-        key_path = Path(key_file)
-        if key_path.exists():
-            try:
-                with open(key_path, encoding="utf-8") as f:
-                    key_data = json.load(f)
-                if key_data.get("type") == "service_account":
-                    creds = service_account.Credentials.from_service_account_info(key_data, scopes=SCOPES)
-                    return gspread.authorize(creds)
-            except Exception:
-                pass
+        # Tìm trong thư mục script trước, sau đó mới thử CWD
+        for search_dir in [script_dir, Path.cwd()]:
+            key_path = search_dir / key_file
+            if key_path.exists():
+                try:
+                    with open(key_path, encoding="utf-8") as f:
+                        key_data = json.load(f)
+                    if key_data.get("type") == "service_account":
+                        creds = service_account.Credentials.from_service_account_info(key_data, scopes=SCOPES)
+                        return gspread.authorize(creds)
+                except Exception:
+                    pass
 
-    # 2. Thử OAuth token đã lưu cục bộ (token.json) hoặc toàn cục (~/.config/ai_audit/token.json)
-    for token_file in ["token.json", str(Path.home() / ".config" / "ai_audit" / "token.json")]:
-        TOKEN_PATH = Path(token_file)
-        if TOKEN_PATH.exists():
-            try:
-                creds = Credentials.from_authorized_user_file(str(TOKEN_PATH), SCOPES)
+    # 2. Thử OAuth token đã lưu từ setup_oauth.py
+    TOKEN_PATH = Path.home() / ".config" / "ai_audit" / "token.json"
+    if TOKEN_PATH.exists():
+        try:
+            creds = Credentials.from_authorized_user_file(str(TOKEN_PATH), SCOPES)
+            if not creds.valid:
                 if creds.expired and creds.refresh_token:
                     creds.refresh(GRequest())
                     with open(TOKEN_PATH, "w") as f:
                         f.write(creds.to_json())
-                return gspread.authorize(creds)
-            except Exception as e:
-                raise RuntimeError(f"Đã tìm thấy file token tại {TOKEN_PATH} nhưng xảy ra lỗi khi xác thực: {e}")
+                else:
+                    raise RuntimeError(
+                        "OAuth token đã hết hạn và không thể làm mới. "
+                        "Vui lòng chạy lại bước xác thực OAuth để lấy token mới."
+                    )
+            return gspread.authorize(creds)
+        except RuntimeError:
+            raise
+        except Exception as e:
+            raise RuntimeError(
+                f"Lỗi khi tải OAuth token từ {TOKEN_PATH}:\n{e}\n"
+                "Vui lòng xoá token.json và chạy lại xác thực OAuth."
+            ) from e
 
-    raise RuntimeError("Không tìm thấy thông tin xác thực Google (Service Account JSON hoặc OAuth token).")
+    raise RuntimeError(
+        "Không tìm thấy thông tin xác thực Google.\n"
+        "Cần một trong hai:\n"
+        "  • File service_account.json (Service Account key)\n"
+        f"  • OAuth token tại {Path.home() / '.config' / 'ai_audit' / 'token.json'}"
+    )
 
 
 # ---------------------------------------------------------------------------
