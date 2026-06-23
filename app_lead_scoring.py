@@ -190,11 +190,64 @@ with st.sidebar:
 # ---------------------------------------------------------------------------
 if run_btn:
     with st.spinner("Đang tải dữ liệu và phân tích bằng AI..."):
-        try:
-            raw_rows = score_leads.load_data(url_input)
-        except Exception as exc:
-            st.error(f"Lỗi tải dữ liệu: {exc}")
-            st.stop()
+        import re
+        is_gsheet = False
+        if url_input.startswith("http://") or url_input.startswith("https://"):
+            if "docs.google.com/spreadsheets" in url_input:
+                is_gsheet = True
+
+        if is_gsheet:
+            try:
+                from streamlit_gsheets import GSheetsConnection
+                # Khởi tạo kết nối gsheets
+                conn = st.connection("gsheets", type=GSheetsConnection)
+                
+                # Trích xuất gid nếu có trong URL
+                gid_match = re.search(r"[#&?]gid=(\d+)", url_input)
+                gid = gid_match.group(1) if gid_match else None
+                
+                if gid:
+                    try:
+                        worksheet_val = int(gid)
+                    except ValueError:
+                        worksheet_val = gid
+                    df = conn.read(spreadsheet=url_input, worksheet=worksheet_val, ttl=0)
+                else:
+                    df = conn.read(spreadsheet=url_input, ttl=0)
+                
+                # Chuyển đổi DataFrame sang list of dicts
+                df = df.fillna("")
+                raw_rows = df.to_dict(orient="records")
+            except Exception as exc:
+                st.error("### ❌ Lỗi Tải Google Sheets Bảo Mật")
+                st.markdown(f"**Chi tiết lỗi:** `{exc}`")
+                st.info(
+                    "💡 **Lưu ý bảo mật:** Google Sheet này có thể là riêng tư. Để kết nối an toàn sử dụng `st-gsheets-connection`:\n\n"
+                    "1. Hãy đảm bảo bạn đã chia sẻ quyền xem Sheet cho Service Account email: \n"
+                    "   `thuc-hanh-bai-7@thuc-hanh-bai-7.iam.gserviceaccount.com`\n"
+                    "2. Tạo file `.streamlit/secrets.toml` trong thư mục gốc của dự án và điền thông tin Service Account key theo mẫu dưới đây:\n"
+                    "```toml\n"
+                    "[connections.gsheets]\n"
+                    f'spreadsheet = "{url_input}"\n\n'
+                    "[connections.gsheets.configuration]\n"
+                    'type = "service_account"\n'
+                    'project_id = "thuc-hanh-bai-7"\n'
+                    'private_key_id = "YOUR_PRIVATE_KEY_ID"\n'
+                    'private_key = "-----BEGIN PRIVATE KEY-----\\nYOUR_PRIVATE_KEY\\n-----END PRIVATE KEY-----\\n"\n'
+                    'client_email = "thuc-hanh-bai-7@thuc-hanh-bai-7.iam.gserviceaccount.com"\n'
+                    'client_id = "YOUR_CLIENT_ID"\n'
+                    "# ... (Điền đầy đủ các trường từ file JSON key của bạn)\n"
+                    "```\n"
+                    "Tham khảo file mẫu tại `.streamlit/secrets.toml.example` để biết thêm chi tiết."
+                )
+                st.stop()
+        else:
+            try:
+                raw_rows = score_leads.load_data(url_input)
+            except Exception as exc:
+                st.error(f"Lỗi tải dữ liệu: {exc}")
+                st.stop()
+
 
         data_list    = []
         integrity_log = []
