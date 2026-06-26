@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trung tâm Chấm điểm Lead AI - Vercel Edition</title>
+    <!-- Google Fonts Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b1329;
+            --panel-bg: rgba(26, 38, 57, 0.6);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --vip-color: #22c55e;
+            --vip-bg: rgba(34, 197, 94, 0.15);
+            --norm-color: #3b82f6;
+            --norm-bg: rgba(59, 130, 246, 0.15);
+            --junk-color: #ef4444;
+            --junk-bg: rgba(239, 68, 68, 0.15);
+            --avg-color: #f59e0b;
+            --avg-bg: rgba(245, 158, 11, 0.15);
+            --font-main: 'Inter', sans-serif;
+            --font-heading: 'Outfit', sans-serif;
+            --sidebar-width: 320px;
+            --glass-blur: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(31, 78, 121, 0.2) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(20, 30, 48, 0.4) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(15, 32, 68, 0.25) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* Container Layout */
+        .app-container {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--panel-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            border-right: 1px solid var(--border-color);
+            padding: 30px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            flex-shrink: 0;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .logo-icon {
+            font-size: 28px;
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 8px rgba(59, 130, 246, 0.5));
+        }
+
+        .logo-text {
+            font-family: var(--font-heading);
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            background: linear-gradient(to right, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 8px 0;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .form-input {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            padding: 12px 14px;
+            font-family: var(--font-main);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-family: var(--font-main);
+            font-weight: 600;
+            font-size: 14px;
+            padding: 14px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: #475569;
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex-grow: 1;
+            padding: 40px;
+            min-width: 0; /* Cho phép flex-child co lại */
+        }
+
+        /* Welcome Banner */
+        .banner {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .banner h1 {
+            font-family: var(--font-heading);
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            background: linear-gradient(to right, #ffffff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .banner p {
+            color: var(--text-secondary);
+            font-size: 15px;
+            font-weight: 400;
+        }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 40px;
+            background: var(--panel-bg);
+            border: 1px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            text-align: center;
+            backdrop-filter: blur(var(--glass-blur));
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 24px;
+            filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.3));
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .empty-state h3 {
+            font-family: var(--font-heading);
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: var(--text-secondary);
+            max-width: 480px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* KPI Dashboard Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .kpi-card {
+            background: var(--panel-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .kpi-card.total::after { background: var(--primary-color); }
+        .kpi-card.vip::after { background: var(--vip-color); }
+        .kpi-card.norm::after { background: var(--norm-color); }
+        .kpi-card.junk::after { background: var(--junk-color); }
+        .kpi-card.avg::after { background: var(--avg-color); }
+
+        .kpi-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .kpi-value {
+            font-family: var(--font-heading);
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 6px;
+            line-height: 1;
+        }
+
+        .kpi-card.total .kpi-value { color: var(--text-primary); }
+        .kpi-card.vip .kpi-value { color: var(--vip-color); }
+        .kpi-card.norm .kpi-value { color: var(--norm-color); }
+        .kpi-card.junk .kpi-value { color: var(--junk-color); }
+        .kpi-card.avg .kpi-value { color: var(--avg-color); }
+
+        .kpi-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Tabs System */
+        .tabs-header {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 24px;
+            gap: 8px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-secondary);
+            font-family: var(--font-main);
+            font-weight: 600;
+            font-size: 14px;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .tab-count {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .tab-btn.active .tab-count {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Table & Panels */
+        .panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .panel-title-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .panel-title {
+            font-family: var(--font-heading);
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .panel-info-banner {
+            background: rgba(59, 130, 246, 0.08);
+            border-left: 4px solid var(--primary-color);
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            font-size: 13px;
+            color: #93c5fd;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Custom Table wrapper */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13.5px;
+        }
+
+        th {
+            background: rgba(15, 23, 42, 0.6);
+            color: var(--text-primary);
+            font-weight: 600;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            color: #cbd5e1;
+            vertical-align: middle;
+        }
+
+        tr:nth-child(even) td {
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        /* Badge Custom styling */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .badge-vip {
+            background: var(--vip-bg);
+            color: #4ade80;
+            border: 1px solid rgba(74, 222, 128, 0.2);
+        }
+
+        .badge-norm {
+            background: var(--norm-bg);
+            color: #60a5fa;
+            border: 1px solid rgba(96, 165, 250, 0.2);
+        }
+
+        .badge-junk {
+            background: var(--junk-bg);
+            color: #f87171;
+            border: 1px solid rgba(248, 113, 113, 0.2);
+        }
+
+        .badge-score {
+            font-weight: 800;
+            font-size: 13px;
+            border-radius: 6px;
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+        }
+        
+        .badge-score.vip { color: #4ade80; }
+        .badge-score.norm { color: #60a5fa; }
+        .badge-score.junk { color: #f87171; }
+
+        /* Custom Inputs in Table */
+        .table-select {
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            padding: 6px 10px;
+            font-family: var(--font-main);
+            font-size: 13px;
+            outline: none;
+            cursor: pointer;
+            width: 100%;
+            min-width: 120px;
+            transition: all 0.2s ease;
+        }
+
+        .table-select:focus {
+            border-color: var(--primary-color);
+        }
+
+        .table-input {
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            padding: 6px 10px;
+            font-family: var(--font-main);
+            font-size: 13px;
+            outline: none;
+            width: 100%;
+            min-width: 180px;
+            transition: all 0.2s ease;
+        }
+
+        .table-input:focus {
+            border-color: var(--primary-color);
+            background: #090d16;
+        }
+
+        /* Action Buttons Box */
+        .actions-panel {
+            display: flex;
+            justify-content: flex-end;
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            box-shadow: none;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: none;
+        }
+
+        /* Loading SpinnerOverlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 19, 41, 0.85);
+            backdrop-filter: blur(6px);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(59, 130, 246, 0.1);
+            border-left-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-family: var(--font-heading);
+            font-size: 16px;
+            font-weight: 600;
+            color: #93c5fd;
+            letter-spacing: 0.5px;
+        }
+
+        /* Custom Toast notification system */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1001;
+        }
+
+        .toast {
+            background: #1e293b;
+            border-left: 4px solid var(--primary-color);
+            border-top: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 16px 20px;
+            border-radius: 0 8px 8px 0;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13.5px;
+            min-width: 300px;
+            max-width: 450px;
+            transform: translateX(120%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success { border-left-color: var(--vip-color); }
+        .toast.error { border-left-color: var(--junk-color); }
+        .toast.warning { border-left-color: var(--avg-color); }
+
+        .toast-icon {
+            font-size: 18px;
+        }
+
+        /* Error Banner styling in sheet log */
+        .error-log-desc {
+            color: #f87171;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <div class="logo-icon">🎯</div>
+                <div class="logo-text">Lead Scoring AI</div>
+            </div>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="form-group">
+                <label class="form-label" for="sheetUrl">🔗 Link Google Sheet / File</label>
+                <input type="text" id="sheetUrl" class="form-input" 
+                       value="https://docs.google.com/spreadsheets/d/1EaHaNMNmqz2Yy-3DpaNktbi4Ii0vRvaz4lwjpL71zYg/edit?usp=sharing"
+                       placeholder="Nhập đường dẫn Google Sheet...">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="exportName">📄 Tên file xuất Excel</label>
+                <input type="text" id="exportName" class="form-input" 
+                       value="Lead_Scoring_Report_Final.xlsx"
+                       placeholder="Lead_Scoring_Report_Final.xlsx">
+            </div>
+
+            <div class="sidebar-divider"></div>
+
+            <button id="btnLoad" class="btn">
+                <span>⚡ Tải Dữ Liệu & Quét AI</span>
+            </button>
+
+            <div class="sidebar-footer">
+                Phiên bản Vercel 2.0 • Web App SPA
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header Banner -->
+            <div class="banner">
+                <h1>🎯 TRUNG TÂM CHẤM ĐIỂM LEAD AI</h1>
+                <p>Hệ thống chấm điểm khách hàng tiềm năng bất động sản • Kết hợp AI + Kiểm duyệt thủ công</p>
+            </div>
+
+            <!-- Welcome Screen (No Data Loaded Yet) -->
+            <div id="welcomeArea" class="empty-state">
+                <div class="empty-icon">📂</div>
+                <h3>Chưa có dữ liệu nào được tải</h3>
+                <p>Cấu hình đường dẫn Google Sheet của bạn trong cột Sidebar bên trái, sau đó bấm nút <strong>⚡ Tải Dữ Liệu & Quét AI</strong> để bắt đầu quá trình chấm điểm tự động.</p>
+            </div>
+
+            <!-- Main Data Area (Hidden initially) -->
+            <div id="dataArea" style="display: none;">
+                
+                <!-- KPI Dashboard -->
+                <div class="kpi-grid">
+                    <div class="kpi-card total">
+                        <div class="kpi-icon">👥</div>
+                        <div id="kpiTotal" class="kpi-value">0</div>
+                        <div class="kpi-label">Tổng Số Khách</div>
+                    </div>
+                    <div class="kpi-card vip">
+                        <div class="kpi-icon">⭐</div>
+                        <div id="kpiVip" class="kpi-value">0</div>
+                        <div class="kpi-label">Khách VIP</div>
+                    </div>
+                    <div class="kpi-card norm">
+                        <div class="kpi-icon">👤</div>
+                        <div id="kpiNorm" class="kpi-value">0</div>
+                        <div class="kpi-label">Bình Thường</div>
+                    </div>
+                    <div class="kpi-card junk">
+                        <div class="kpi-icon">🗑️</div>
+                        <div id="kpiJunk" class="kpi-value">0</div>
+                        <div class="kpi-label">Khách Rác</div>
+                    </div>
+                    <div class="kpi-card avg">
+                        <div class="kpi-icon">📊</div>
+                        <div id="kpiAvg" class="kpi-value">0.0</div>
+                        <div class="kpi-label">Điểm TB</div>
+                    </div>
+                </div>
+
+                <!-- Tabs Menu -->
+                <div class="tabs-header">
+                    <button class="tab-btn active" onclick="switchTab('tabReview')">
+                        <span>📝 Bảng Kiểm Duyệt Khách Hàng</span>
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('tabIntegrity')">
+                        <span>⚠️ Nhật Ký Cảnh Báo Dữ Liệu</span>
+                        <span id="integrityBadgeCount" class="tab-count">0</span>
+                    </button>
+                </div>
+
+                <!-- Tab 1: Review Table -->
+                <div id="tabReview" class="tab-content active">
+                    <div class="panel">
+                        <div class="panel-info-banner">
+                            <span>💡</span>
+                            <span>Thay đổi phân loại kiểm duyệt tại cột <strong>Phân loại KD</strong> và ghi chú thêm để hệ thống tự cập nhật điểm cuối và giải trình.</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width: 80px;">Mã Lead</th>
+                                        <th style="width: 150px;">Tên Khách Hàng</th>
+                                        <th style="width: 120px;">Số ĐT</th>
+                                        <th>Mô Tả Nhu Cầu</th>
+                                        <th style="text-align: center; width: 90px;">Điểm AI</th>
+                                        <th style="text-align: center; width: 120px;">Phân Loại AI</th>
+                                        <th style="text-align: center; width: 90px;">Điểm Cuối</th>
+                                        <th style="width: 150px;">Phân Loại KD</th>
+                                        <th style="width: 200px;">Ghi Chú</th>
+                                        <th>Giải Trình</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reviewTableBody">
+                                    <!-- Dynamic rows loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="actions-panel">
+                        <button id="btnExportExcel" class="btn btn-secondary">
+                            <span>📥 Tải Xuống Excel</span>
+                        </button>
+                        <button id="btnWriteBack" class="btn btn-success">
+                            <span>📝 Cập Nhật Google Sheet</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Integrity Warnings Log -->
+                <div id="tabIntegrity" class="tab-content">
+                    <div class="panel">
+                        <div class="panel-title-area">
+                            <h3 class="panel-title">Nhật ký lỗi chất lượng dữ liệu đầu vào</h3>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width: 100px; text-align: center;">Dòng Sheet</th>
+                                        <th style="width: 100px; text-align: center;">Mã Lead</th>
+                                        <th style="width: 150px;">Tên Khách</th>
+                                        <th style="width: 120px; text-align: center;">Số ĐT</th>
+                                        <th style="width: 120px; text-align: center;">Trường Bị Lỗi</th>
+                                        <th>Chi Tiết Lỗi</th>
+                                        <th>Hướng Xử Lý</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="integrityTableBody">
+                                    <!-- Warning logs here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <div id="loadingText" class="loading-text">Đang tải và xử lý dữ liệu bằng AI...</div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script>
+        // Global State
+        let appData = {
+            leads: [],
+            integrity_log: []
+        };
+
+        // DOM elements
+        const sheetUrlInput = document.getElementById('sheetUrl');
+        const exportNameInput = document.getElementById('exportName');
+        const btnLoad = document.getElementById('btnLoad');
+        const btnExportExcel = document.getElementById('btnExportExcel');
+        const btnWriteBack = document.getElementById('btnWriteBack');
+        
+        const welcomeArea = document.getElementById('welcomeArea');
+        const dataArea = document.getElementById('dataArea');
+        
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loadingText');
+        const toastContainer = document.getElementById('toastContainer');
+        
+        const reviewTableBody = document.getElementById('reviewTableBody');
+        const integrityTableBody = document.getElementById('integrityTableBody');
+        const integrityBadgeCount = document.getElementById('integrityBadgeCount');
+
+        // Event listeners
+        btnLoad.addEventListener('click', loadDataAndScore);
+        btnExportExcel.addEventListener('click', exportToExcel);
+        btnWriteBack.addEventListener('click', writeBackToGoogleSheet);
+
+        // Switch Tabs function
+        function switchTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show target tab
+            document.getElementById(tabId).classList.add('active');
+            
+            // Activate button
+            const clickedBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => {
+                return btn.getAttribute('onclick').includes(tabId);
+            });
+            if (clickedBtn) clickedBtn.classList.add('active');
+        }
+
+        // Show loading spinner
+        function showLoading(text) {
+            loadingText.textContent = text || "Đang tải dữ liệu...";
+            loadingOverlay.style.display = "flex";
+        }
+
+        // Hide loading spinner
+        function hideLoading() {
+            loadingOverlay.style.display = "none";
+        }
+
+        // Toast notifications
+        function showToast(message, type = 'success', duration = 3000) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            let icon = 'ℹ️';
+            if (type === 'success') icon = '✅';
+            if (type === 'error') icon = '❌';
+            if (type === 'warning') icon = '⚠️';
+
+            toast.innerHTML = `
+                <span class="toast-icon">${icon}</span>
+                <span class="toast-message">${message}</span>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Trigger animation
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+            
+            // Remove after duration
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, duration);
+        }
+
+        // Load data from Google Sheet API
+        async function loadDataAndScore() {
+            const url = sheetUrlInput.value.trim();
+            if (!url) {
+                showToast("Vui lòng điền link Google Sheet!", "error");
+                return;
+            }
+
+            showLoading("Đang kết nối Google Sheets và đánh giá AI...");
+            
+            try {
+                const response = await fetch('/api/score', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+
+                const result = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(result.detail || "Có lỗi không xác định xảy ra khi kết nối máy chủ.");
+                }
+
+                if (result.success) {
+                    appData.leads = result.leads;
+                    appData.integrity_log = result.integrity_log;
+                    
+                    // Render Dashboard & tables
+                    renderAll();
+                    
+                    welcomeArea.style.display = 'none';
+                    dataArea.style.display = 'block';
+                    
+                    showToast(`Đã phân tích thành công ${appData.leads.length} dòng dữ liệu!`, 'success');
+                } else {
+                    showToast("Phân tích thất bại!", "error");
+                }
+            } catch (error) {
+                console.error(error);
+                showToast(error.message, "error", 6000);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Render dashboard elements
+        function renderAll() {
+            renderDashboard();
+            renderReviewTable();
+            renderIntegrityTable();
+        }
+
+        // Recalculate and update dashboard
+        function renderDashboard() {
+            const total = appData.leads.length;
+            const nVip = appData.leads.filter(l => l.human_category === 'VIP').length;
+            const nNorm = appData.leads.filter(l => l.human_category === 'Bình thường').length;
+            const nJunk = appData.leads.filter(l => l.human_category === 'Rác').length;
+            
+            let totalScore = 0;
+            appData.leads.forEach(l => {
+                totalScore += Number(l.final_score);
+            });
+            const avg = total > 0 ? (totalScore / total).toFixed(1) : "0.0";
+
+            document.getElementById('kpiTotal').textContent = total;
+            document.getElementById('kpiVip').textContent = nVip;
+            document.getElementById('kpiNorm').textContent = nNorm;
+            document.getElementById('kpiJunk').textContent = nJunk;
+            document.getElementById('kpiAvg').textContent = avg;
+        }
+
+        // Render lead review table with interactive cells
+        function renderReviewTable() {
+            reviewTableBody.innerHTML = '';
+            
+            appData.leads.forEach((lead, index) => {
+                const tr = document.createElement('tr');
+                
+                // Class styling based on human category
+                let scoreClass = 'norm';
+                if (lead.human_category === 'VIP') scoreClass = 'vip';
+                if (lead.human_category === 'Rác') scoreClass = 'junk';
+
+                let aiCatBadgeClass = 'badge-norm';
+                if (lead.ai_category === 'VIP') aiCatBadgeClass = 'badge-vip';
+                if (lead.ai_category === 'Rác') aiCatBadgeClass = 'badge-junk';
+
+                tr.innerHTML = `
+                    <td style="text-align: center; font-weight: bold; color: var(--text-secondary);">${lead.id}</td>
+                    <td style="font-weight: 500;">${lead.ten_khach}</td>
+                    <td style="text-align: center;">${lead.sdt}</td>
+                    <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: normal;">${lead.nhu_cau_mo_ta}</td>
+                    <td style="text-align: center;"><span class="badge-score">${lead.ai_score}</span></td>
+                    <td style="text-align: center;"><span class="badge ${aiCatBadgeClass}">${lead.ai_category}</span></td>
+                    <td style="text-align: center;"><span class="badge-score ${scoreClass}" id="score-${index}">${lead.final_score}</span></td>
+                    <td>
+                        <select class="table-select" onchange="onCategoryChange(${index}, this.value)">
+                            <option value="VIP" ${lead.human_category === 'VIP' ? 'selected' : ''}>VIP</option>
+                            <option value="Bình thường" ${lead.human_category === 'Bình thường' ? 'selected' : ''}>Bình thường</option>
+                            <option value="Rác" ${lead.human_category === 'Rác' ? 'selected' : ''}>Rác</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" class="table-input" value="${lead.review_notes || ''}" 
+                               placeholder="Ghi chú review..." onchange="onNotesChange(${index}, this.value)">
+                    </td>
+                    <td id="reason-${index}" style="font-size: 12px; color: var(--text-secondary); line-height: 1.4;">${lead.reasoning}</td>
+                `;
+                
+                reviewTableBody.appendChild(tr);
+            });
+        }
+
+        // Live calculation when user changes human category dropdown
+        function onCategoryChange(index, newCategory) {
+            const lead = appData.leads[index];
+            lead.human_category = newCategory;
+            
+            // Logic sync_changes local
+            if (lead.human_category !== lead.ai_category) {
+                if (lead.human_category === 'VIP') {
+                    lead.final_score = 100;
+                } else if (lead.human_category === 'Rác') {
+                    lead.final_score = 0;
+                } else {
+                    lead.final_score = 50;
+                }
+                const notesStr = lead.review_notes ? ` | Ghi chú: ${lead.review_notes}` : "";
+                lead.reasoning = `[Thủ công] Chuyển thành ${lead.human_category}${notesStr} (AI: ${lead.ai_category})`;
+            } else {
+                lead.final_score = lead.ai_score;
+                if (lead.review_notes) {
+                    lead.reasoning = `[Thủ công] Giữ nguyên ${lead.human_category} | Ghi chú: ${lead.review_notes}`;
+                } else {
+                    lead.reasoning = lead.ai_reasoning;
+                }
+            }
+
+            // Sync cell styling and values dynamically
+            const scoreEl = document.getElementById(`score-${index}`);
+            const reasonEl = document.getElementById(`reason-${index}`);
+            
+            scoreEl.textContent = lead.final_score;
+            scoreEl.className = `badge-score ${newCategory === 'VIP' ? 'vip' : newCategory === 'Rác' ? 'junk' : 'norm'}`;
+            reasonEl.textContent = lead.reasoning;
+
+            // Recalculate KPIs
+            renderDashboard();
+        }
+
+        // Live sync when user edits the notes
+        function onNotesChange(index, newNotes) {
+            const lead = appData.leads[index];
+            lead.review_notes = newNotes.trim();
+            
+            // Reapply changes
+            onCategoryChange(index, lead.human_category);
+        }
+
+        // Render warning data integrity table
+        function renderIntegrityTable() {
+            integrityTableBody.innerHTML = '';
+            const count = appData.integrity_log.length;
+            integrityBadgeCount.textContent = count;
+
+            if (count === 0) {
+                integrityTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: var(--vip-color); font-weight: bold; padding: 24px;">
+                            🎉 Tuyệt vời! Không phát hiện lỗi chất lượng dữ liệu nào.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            appData.integrity_log.forEach(log => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="text-align: center; font-weight: bold;">${log.row_num}</td>
+                    <td style="text-align: center; color: var(--text-secondary);">${log.id}</td>
+                    <td>${log.ten_khach}</td>
+                    <td style="text-align: center;">${log.sdt}</td>
+                    <td style="text-align: center;"><span class="badge badge-junk">${log.field}</span></td>
+                    <td class="error-log-desc">${log.error_msg}</td>
+                    <td style="color: #60a5fa;">${log.action}</td>
+                `;
+                integrityTableBody.appendChild(tr);
+            });
+        }
+
+        // POST request to generate & download Excel
+        async function exportToExcel() {
+            if (appData.leads.length === 0) {
+                showToast("Không có dữ liệu để xuất!", "error");
+                return;
+            }
+
+            const exportName = exportNameInput.value.trim() || "Lead_Scoring_Report_Final.xlsx";
+            showLoading("Đang chuẩn bị báo cáo Excel...");
+
+            try {
+                const response = await fetch('/api/export', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        leads: appData.leads,
+                        integrity_log: appData.integrity_log,
+                        output_name: exportName
+                    })
+                });
+
+                if (!response.ok) {
+                    const result = await response.json();
+                    throw new Error(result.detail || "Không thể xuất file Excel.");
+                }
+
+                // Download blob
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = exportName;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+                
+                showToast("Tải báo cáo Excel thành công!", "success");
+            } catch (error) {
+                console.error(error);
+                showToast(error.message, "error");
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // POST request to update Google Sheets database
+        async function writeBackToGoogleSheet() {
+            if (appData.leads.length === 0) {
+                showToast("Không có dữ liệu để cập nhật!", "error");
+                return;
+            }
+
+            const sheetUrl = sheetUrlInput.value.trim();
+            showLoading("Đang ghi kết quả ngược về Google Sheet...");
+
+            try {
+                const response = await fetch('/api/write-back', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        url: sheetUrl,
+                        leads: appData.leads
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.detail || "Không thể cập nhật Google Sheet.");
+                }
+
+                if (result.success) {
+                    showToast("Đã cập nhật Google Sheet thành công!", "success");
+                } else {
+                    showToast("Cập nhật thất bại!", "error");
+                }
+            } catch (error) {
+                console.error(error);
+                showToast(error.message, "error", 6000);
+            } finally {
+                hideLoading();
+            }
+        }
+    </script>
+</body>
+</html>

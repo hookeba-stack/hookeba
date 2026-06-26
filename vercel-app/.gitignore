@@ -1,0 +1,9 @@
+.vercel
+__pycache__/
+*.pyc
+.env
+*.xlsx
+*.xls
+token.json
+service_account.json
+gg-cloud-key-json.json
