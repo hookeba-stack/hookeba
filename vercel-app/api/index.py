@@ -222,9 +222,9 @@ async def api_write_back(request: WriteBackRequest):
 # Serve file index.html cho Vercel SPA
 @app.get("/", response_class=HTMLResponse)
 async def serve_index():
-    index_path = PARENT_DIR / "public" / "index.html"
+    index_path = PARENT_DIR / "index.html"
     if not index_path.exists():
-        index_path = CURRENT_DIR.parent / "public" / "index.html"
+        index_path = CURRENT_DIR.parent / "index.html"
     
     if index_path.exists():
         with open(index_path, "r", encoding="utf-8") as f:
